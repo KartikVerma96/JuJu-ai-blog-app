@@ -1,0 +1,324 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   THEME TOKENS
+   The whole app is styled with Tailwind classes like `bg-dark-400` or
+   `text-light-200`. In tailwind.config.js those colors point at the CSS
+   variables below — so changing one set of variables re-themes the entire UI.
+
+   IMPORTANT: the values are stored as "R G B" channel triplets (not hex) so
+   Tailwind's opacity modifiers keep working, e.g. `bg-dark-500/40`. The config
+   wraps them as `rgb(var(--dark-500) / <alpha-value>)`.
+
+   :root  = LIGHT theme (default)   |   .dark = DARK theme (class on <html>)
+--------------------------------------------------------------------------- */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Tells the browser to render NATIVE controls (the <select> dropdown popup,
+     scrollbars, date pickers) in light mode. .dark switches this to dark. */
+  color-scheme: light;
+
+  /* Light theme palette */
+  --dark-200: 244 246 249; /* page background */
+  --dark-300: 235 239 243; /* secondary surface */
+  --dark-400: 255 255 255; /* cards / inputs */
+  --dark-500: 225 230 236; /* borders */
+  --dark-600: 105 115 126; /* faint text / icons / placeholders */
+  --dark-700: 60 70 80; /* muted text */
+  --light-200: 21 25 29; /* primary text */
+  --light-700: 57 66 76; /* labels */
+  --white: 12 15 18; /* strong heading text */
+
+  --green-600: 228 246 238; /* badge / tint backgrounds */
+  --blue-600: 232 241 251;
+  --red-600: 252 236 234;
+  --yellow-600: 251 244 222;
+
+  /* Non-Tailwind values (used directly in CSS) */
+  --dot: rgba(13, 15, 16, 0.06);
+  --prose-body: #2B343C;
+  --code-bg: #EEF1F4;
+  --shadow-card: 0 10px 30px -12px rgba(17, 24, 39, 0.15);
+  --shadow-soft: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+
+.dark {
+  /* Native controls (select popup, scrollbars) render dark in this theme. */
+  color-scheme: dark;
+
+  /* Dark theme palette (the original CarePulse look) */
+  --dark-200: 13 15 16;
+  --dark-300: 19 22 25;
+  --dark-400: 26 29 33;
+  --dark-500: 54 58 61;
+  --dark-600: 118 130 141;
+  --dark-700: 171 184 196;
+  --light-200: 232 233 233;
+  --light-700: 171 184 196;
+  --white: 255 255 255;
+
+  --green-600: 13 42 31;
+  --blue-600: 21 36 50;
+  --red-600: 62 23 22;
+  --yellow-600: 49 40 21;
+
+  --dot: rgba(255, 255, 255, 0.045);
+  --prose-body: #D6DBDF;
+  --code-bg: #0D0F10;
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: rgb(var(--dark-200));
+  color: rgb(var(--light-200));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--dark-200));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--dark-500));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--dark-600));
+}
+
+/* ---------------------------------------------------------------------------
+   Typography scale (size + weight in one class)
+--------------------------------------------------------------------------- */
+@layer utilities {
+  .text-48-bold { @apply text-[34px] font-bold leading-[40px] sm:text-[48px] sm:leading-[56px] tracking-tight; }
+  .text-36-bold { @apply text-[30px] font-bold leading-[36px] sm:text-[36px] sm:leading-[42px] tracking-tight; }
+  .text-28-bold { @apply text-[24px] font-bold leading-[30px] sm:text-[28px] sm:leading-[34px] tracking-tight; }
+  .text-24-bold { @apply text-[22px] font-bold leading-[28px] sm:text-[24px] sm:leading-[30px]; }
+  .text-20-bold { @apply text-[20px] font-bold leading-[26px]; }
+  .text-18-bold { @apply text-[18px] font-bold leading-[24px]; }
+  .text-16-semibold { @apply text-[16px] font-semibold leading-[20px]; }
+  .text-14-medium { @apply text-[14px] font-medium leading-[18px]; }
+  .text-14-regular { @apply text-[14px] font-normal leading-[18px]; }
+  .text-12-regular { @apply text-[12px] font-normal leading-[16px]; }
+
+  .dotted-bg {
+    background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(var(--dot) 1px, transparent 1px),
+      linear-gradient(90deg, var(--dot) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .text-glow {
+    text-shadow: 0 0 24px rgba(36, 174, 124, 0.35);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Components
+--------------------------------------------------------------------------- */
+@layer components {
+  /* Full-bleed container: spans the whole screen width with responsive side
+     padding (no max-width cap). Reading-width sections opt back in with their
+     own max-w-* utility on top of this. */
+  .container-app {
+    @apply mx-auto w-full px-5 sm:px-8 lg:px-12 xl:px-20;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  /* Buttons sit on colored backgrounds, so their text stays literally white
+     in BOTH themes (not the themed --white token). */
+  .btn-primary {
+    @apply btn bg-green-500 shadow-soft hover:brightness-110 hover:shadow-green-glow active:scale-[0.98];
+    color: #fff;
+  }
+  .btn-outline {
+    @apply btn border border-dark-500 bg-dark-400 text-light-200 hover:border-dark-600 hover:bg-dark-500/40 active:scale-[0.98];
+  }
+  .btn-danger {
+    @apply btn bg-red-700 hover:brightness-110 active:scale-[0.98];
+    color: #fff;
+  }
+  .btn-ghost {
+    @apply btn text-dark-700 hover:bg-dark-400 hover:text-light-200;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-dark-500 bg-dark-400 px-4 py-3 text-sm text-light-200 placeholder:text-dark-600 outline-none transition-all duration-200 focus:border-green-500 focus:ring-2 focus:ring-green-500/20;
+  }
+  /* The <option> items in a dropdown popup — colored to match the theme on
+     browsers that honor option styling (color-scheme handles the rest). */
+  .input option {
+    background-color: rgb(var(--dark-400));
+    color: rgb(var(--light-200));
+  }
+  .label {
+    @apply mb-2 block text-sm font-medium text-light-700;
+  }
+
+  .card {
+    @apply rounded-2xl border border-dark-500 bg-dark-400 shadow-card;
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:border-green-500/40 hover:shadow-green-glow;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+  .badge-green { @apply badge bg-green-600 text-green-500; }
+  .badge-blue { @apply badge bg-blue-600 text-blue-500; }
+  .badge-red { @apply badge bg-red-600 text-red-500; }
+  .badge-yellow { @apply badge bg-yellow-600 text-yellow-500; }
+
+  .stat-card {
+    @apply relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-dark-500 p-6 shadow-card transition-transform duration-300 hover:-translate-y-1;
+  }
+
+  /* Stat-card gradient surfaces — LIGHT theme (a soft colored tint on white).
+     The .dark overrides below restore the deep CarePulse gradients. */
+  .bg-stat-green {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(36, 174, 124, 0.16) 0%, rgba(36, 174, 124, 0) 50%),
+      linear-gradient(135deg, #EFFAF5 0%, #FFFFFF 60%);
+  }
+  .bg-stat-blue {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(121, 181, 236, 0.18) 0%, rgba(121, 181, 236, 0) 50%),
+      linear-gradient(135deg, #EEF6FE 0%, #FFFFFF 60%);
+  }
+  .bg-stat-red {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(242, 78, 67, 0.14) 0%, rgba(242, 78, 67, 0) 50%),
+      linear-gradient(135deg, #FDF0EF 0%, #FFFFFF 60%);
+  }
+  .bg-stat-yellow {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(252, 199, 77, 0.20) 0%, rgba(252, 199, 77, 0) 50%),
+      linear-gradient(135deg, #FDF8EA 0%, #FFFFFF 60%);
+  }
+
+  .dark .bg-stat-green {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(36, 174, 124, 0.22) 0%, rgba(36, 174, 124, 0) 45%),
+      linear-gradient(135deg, #11211B 0%, #1A1D21 60%);
+  }
+  .dark .bg-stat-blue {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(121, 181, 236, 0.20) 0%, rgba(121, 181, 236, 0) 45%),
+      linear-gradient(135deg, #14202B 0%, #1A1D21 60%);
+  }
+  .dark .bg-stat-red {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(242, 78, 67, 0.20) 0%, rgba(242, 78, 67, 0) 45%),
+      linear-gradient(135deg, #261516 0%, #1A1D21 60%);
+  }
+  .dark .bg-stat-yellow {
+    background-image:
+      radial-gradient(120% 120% at 100% 0%, rgba(252, 199, 77, 0.18) 0%, rgba(252, 199, 77, 0) 45%),
+      linear-gradient(135deg, #241D11 0%, #1A1D21 60%);
+  }
+
+  .data-table {
+    @apply w-full text-left text-sm;
+  }
+  .data-table thead {
+    @apply border-b border-dark-500 bg-dark-300/40 text-xs uppercase tracking-wider text-dark-600;
+  }
+  .data-table th {
+    @apply px-5 py-3.5 font-medium;
+  }
+  .data-table tbody tr {
+    @apply border-b border-dark-500/70 transition-colors hover:bg-dark-500/15;
+  }
+  .data-table td {
+    @apply px-5 py-3.5;
+  }
+
+  .icon-btn {
+    @apply rounded-lg p-2 text-dark-600 transition-colors hover:bg-dark-500/40 hover:text-light-200;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Article body (themed via variables)
+--------------------------------------------------------------------------- */
+.prose-content {
+  line-height: 1.85;
+  font-size: 1.075rem;
+  color: var(--prose-body);
+}
+.prose-content h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin: 2rem 0 0.9rem;
+  color: rgb(var(--white));
+  letter-spacing: -0.02em;
+}
+.prose-content h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.6rem;
+  color: rgb(var(--white));
+}
+.prose-content p {
+  margin: 0 0 1.15rem;
+}
+.prose-content ul,
+.prose-content ol {
+  margin: 0 0 1.15rem 1.4rem;
+}
+.prose-content li {
+  margin-bottom: 0.4rem;
+}
+.prose-content blockquote {
+  border-left: 3px solid #24AE7C;
+  background: rgba(36, 174, 124, 0.08);
+  padding: 0.6rem 1.1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 1.4rem 0;
+  color: rgb(var(--light-700));
+  font-style: italic;
+}
+.prose-content a {
+  color: #24AE7C;
+  text-decoration: underline;
+}
+.prose-content code {
+  background: var(--code-bg);
+  border: 1px solid rgb(var(--dark-500));
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.9em;
+}
+.prose-content img {
+  border-radius: 0.75rem;
+  margin: 1.4rem 0;
+  max-width: 100%;
+}

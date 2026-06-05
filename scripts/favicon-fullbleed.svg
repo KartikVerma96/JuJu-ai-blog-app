@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#33C892"/>
+      <stop offset="1" stop-color="#1C9A6C"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" fill="url(#g)"/>
+  <rect x="0" y="0" width="512" height="270" fill="url(#sheen)"/>
+
+  <!-- Monogram J (within the central maskable safe zone) -->
+  <g fill="none" stroke="#ffffff" stroke-width="56" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M232 158 L360 158"/>
+    <path d="M316 158 L316 298 C316 356 286 372 250 372 C206 372 182 346 180 304"/>
+  </g>
+</svg>
