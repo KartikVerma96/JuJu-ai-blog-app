@@ -4,7 +4,8 @@ import { Provider, useSelector, useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { store } from '@/store/store';
-import { useMeQuery } from '@/store/services/api';
+import { fetchCurrentUser } from '@/lib/authApi';
+import { setUser, clearUser } from '@/store/slices/authSlice';
 import { selectTheme, setTheme } from '@/store/slices/uiSlice';
 
 // Self-hosted Plus Jakarta Sans, exposed through the --font-sans CSS variable
@@ -16,10 +17,16 @@ const jakarta = Plus_Jakarta_Sans({
   display: 'swap',
 });
 
-// Fires the /auth/me query once on mount so the auth slice is hydrated
-// for the whole app (handled by extraReducers matchers in authSlice).
+// When the app first loads, ask the server who we are. The login cookie is
+// sent automatically, so if it's valid we get the user back and save it in
+// Redux; if not, we mark ourselves as logged out. Runs once for the whole app.
 function AuthBootstrap() {
-  useMeQuery();
+  const dispatch = useDispatch();
+  useEffect(() => {
+    fetchCurrentUser()
+      .then((data) => dispatch(setUser(data.user)))
+      .catch(() => dispatch(clearUser()));
+  }, [dispatch]);
   return null;
 }
 

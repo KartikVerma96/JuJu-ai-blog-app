@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import Logo from '../Logo';
 import { selectSidebarOpen, setSidebar } from '@/store/slices/uiSlice';
-import { useLogoutMutation } from '@/store/services/api';
+import { clearUser } from '@/store/slices/authSlice';
+import { logoutRequest } from '@/lib/authApi';
 
 const links = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -27,10 +28,10 @@ export default function AdminSidebar() {
   const router = useRouter();
   const dispatch = useDispatch();
   const open = useSelector(selectSidebarOpen);
-  const [logout] = useLogoutMutation();
 
   const handleLogout = async () => {
-    await logout();
+    await logoutRequest();   // clear the login cookie on the server
+    dispatch(clearUser());   // forget the user in Redux
     router.push('/');
   };
 

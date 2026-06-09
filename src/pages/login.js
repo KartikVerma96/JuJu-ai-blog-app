@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AuthShell from '@/components/AuthShell';
 import Spinner from '@/components/Spinner';
-import { useLoginMutation } from '@/store/services/api';
-import { selectUser } from '@/store/slices/authSlice';
+import { loginRequest } from '@/lib/authApi';
+import { selectUser, setUser } from '@/store/slices/authSlice';
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const [login, { isLoading }] = useLoginMutation();
+  // Local loading flag for the button (RTK Query used to give us this for free;
+  // now we just track it ourselves with useState).
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ email: '', password: '' });
 
   const next = router.query.next;
@@ -25,12 +28,16 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
-      const res = await login(form).unwrap();
-      toast.success(`Welcome back, ${res.user.name.split(' ')[0]}!`);
-      router.replace(res.user.role === 'ADMIN' ? '/admin' : typeof next === 'string' ? next : '/');
+      const data = await loginRequest(form);   // 1. ask the server to log us in
+      dispatch(setUser(data.user));             // 2. save the user in Redux
+      toast.success(`Welcome back, ${data.user.name.split(' ')[0]}!`);
+      router.replace(data.user.role === 'ADMIN' ? '/admin' : typeof next === 'string' ? next : '/');
     } catch (err) {
-      toast.error(err?.data?.message || 'Login failed');
+      toast.error(err?.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -71,8 +78,8 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <button type="submit" disabled={isLoading} className="btn-primary w-full">
-          {isLoading ? <Spinner size={18} className="text-dark-200" /> : <LogIn size={18} />}
+        <button type="submit" disabled={submitting} className="btn-primary w-full">
+          {submitting ? <Spinner size={18} className="text-dark-200" /> : <LogIn size={18} />}
           Sign in
         </button>
       </form>

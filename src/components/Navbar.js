@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
 import { LayoutDashboard, LogOut, ChevronDown, Menu, X } from 'lucide-react';
 import Logo from './Logo';
 import Avatar from './Avatar';
 import ThemeToggle from './ThemeToggle';
-import { selectUser, selectAuthStatus } from '@/store/slices/authSlice';
-import { useLogoutMutation } from '@/store/services/api';
+import { selectUser, selectAuthStatus, clearUser } from '@/store/slices/authSlice';
+import { logoutRequest } from '@/lib/authApi';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home', match: (r) => r.pathname === '/' },
@@ -21,13 +21,14 @@ const NAV_LINKS = [
 export default function Navbar() {
   const user = useSelector(selectUser);
   const status = useSelector(selectAuthStatus);
-  const [logout] = useLogoutMutation();
+  const dispatch = useDispatch();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
+    await logoutRequest();   // tell the server to clear the login cookie
+    dispatch(clearUser());   // forget the user in Redux
     toast.success('Signed out');
     setMenuOpen(false);
     setMobileOpen(false);

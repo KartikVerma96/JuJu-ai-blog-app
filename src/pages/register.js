@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { Mail, Lock, User as UserIcon, UserPlus } from 'lucide-react';
 import Seo from '@/components/Seo';
 import AuthShell from '@/components/AuthShell';
 import Spinner from '@/components/Spinner';
-import { useRegisterMutation } from '@/store/services/api';
-import { selectUser } from '@/store/slices/authSlice';
+import { registerRequest } from '@/lib/authApi';
+import { selectUser, setUser } from '@/store/slices/authSlice';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const user = useSelector(selectUser);
-  const [register, { isLoading }] = useRegisterMutation();
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
 
   useEffect(() => {
@@ -26,12 +27,16 @@ export default function RegisterPage() {
       toast.error('Password must be at least 6 characters');
       return;
     }
+    setSubmitting(true);
     try {
-      const res = await register(form).unwrap();
-      toast.success(`Welcome to JuJu, ${res.user.name.split(' ')[0]}!`);
+      const data = await registerRequest(form);   // 1. create the account
+      dispatch(setUser(data.user));                // 2. save the user in Redux
+      toast.success(`Welcome to JuJu, ${data.user.name.split(' ')[0]}!`);
       router.replace('/');
     } catch (err) {
-      toast.error(err?.data?.message || 'Registration failed');
+      toast.error(err?.message || 'Registration failed');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -86,8 +91,8 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <button type="submit" disabled={isLoading} className="btn-primary w-full">
-          {isLoading ? <Spinner size={18} className="text-dark-200" /> : <UserPlus size={18} />}
+        <button type="submit" disabled={submitting} className="btn-primary w-full">
+          {submitting ? <Spinner size={18} className="text-dark-200" /> : <UserPlus size={18} />}
           Create account
         </button>
       </form>

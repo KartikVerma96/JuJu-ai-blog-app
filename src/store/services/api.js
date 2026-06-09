@@ -1,33 +1,35 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// Central RTK Query service. All requests send cookies so the httpOnly
-// JWT travels with every call (credentials: 'include').
+// RTK Query is the part of Redux Toolkit that handles "server data" for us:
+// the posts, users, comments and so on that live in the database. We list our
+// endpoints once here and it generates ready-made React hooks
+// (useGetPostsQuery, useCreatePostMutation, ...) that do the fetching, the
+// loading flags, the caching and the re-fetching for us. So no hand-written
+// fetch() + useState + useEffect on every screen.
+//
+// Note: auth (login / register / logout / me) is intentionally NOT in here.
+// It uses plain fetch in src/lib/authApi.js so the login flow is easy to
+// follow step by step. This file is only for the rest of the server data.
+//
+// There are two kinds of endpoints below:
+//   query    -> reads data            (GET)               e.g. getPosts
+//   mutation -> changes data          (POST / PUT / DELETE) e.g. createPost
+//
+// How the caching stays fresh, in one idea: each query is labelled with tags
+// (providesTags). When a mutation finishes it can mark some tags as stale
+// (invalidatesTags), and RTK Query then refetches only the queries that used
+// those tags. Example: createPost invalidates 'Posts', so the posts list
+// refreshes by itself right after you add a post.
 export const api = createApi({
-  reducerPath: 'api',
+  reducerPath: 'api', // the key this cache lives under inside the store
   baseQuery: fetchBaseQuery({
     baseUrl: '/api',
+    // send cookies with every request, so our httpOnly login cookie tags along
     credentials: 'include',
   }),
-  tagTypes: ['Post', 'Posts', 'User', 'Users', 'Category', 'Stats', 'Comment'],
+  // the full list of cache labels we use on the endpoints below
+  tagTypes: ['Post', 'Posts', 'Users', 'Category', 'Stats', 'Comment'],
   endpoints: (builder) => ({
-    // ---- Auth ----
-    me: builder.query({
-      query: () => '/auth/me',
-      providesTags: ['User'],
-    }),
-    login: builder.mutation({
-      query: (body) => ({ url: '/auth/login', method: 'POST', body }),
-      invalidatesTags: ['User', 'Stats'],
-    }),
-    register: builder.mutation({
-      query: (body) => ({ url: '/auth/register', method: 'POST', body }),
-      invalidatesTags: ['User'],
-    }),
-    logout: builder.mutation({
-      query: () => ({ url: '/auth/logout', method: 'POST' }),
-      invalidatesTags: ['User'],
-    }),
-
     // ---- Posts (public + admin) ----
     getPosts: builder.query({
       query: (params = {}) => ({ url: '/posts', params }),
@@ -79,9 +81,9 @@ export const api = createApi({
     }),
 
     // ---- Users (admin) ----
-    // Accepts { q, role, page, limit, sortBy, order } and forwards them as the
-    // query string. RTK Query caches each unique combination of params, so
-    // flipping back to a page you already visited is instant (served from cache).
+    // Takes { q, role, page, limit, sortBy, order } and sends them as the URL
+    // query string. RTK Query caches each unique mix of params separately, so
+    // going back to a page you already loaded is instant (served from cache).
     getUsers: builder.query({
       query: (params = {}) => ({ url: '/users', params }),
       providesTags: ['Users'],
@@ -103,11 +105,10 @@ export const api = createApi({
   }),
 });
 
+// RTK Query generated one hook for every endpoint above. These are what the
+// components import and call (the naming is always use + EndpointName + Query
+// or Mutation).
 export const {
-  useMeQuery,
-  useLoginMutation,
-  useRegisterMutation,
-  useLogoutMutation,
   useGetPostsQuery,
   useGetPostBySlugQuery,
   useGetPostByIdQuery,
